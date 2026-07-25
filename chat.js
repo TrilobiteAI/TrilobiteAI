@@ -496,3 +496,16 @@ function handleUserInput(input, apiKey) {
   // If key is valid, continue with your AI logic
   return "✅ Key accepted. Trilobite AI is ready to process: " + input;
 }
+// 🟦 TrilobiteAI fixed API key system
+const TRILOBITE_KEY = "TheCylindricalityKeyOfTrilobitilityMadeInJulyFromTheSymbol:12357!@Trilobite.CodeAccept";
+
+// Simple endpoint for Roblox HttpService
+app.post("/trilobite", (req, res) => {
+  const apiKey = req.body.apiKey;
+
+  if (apiKey === TRILOBITE_KEY) {
+    res.json({ valid: true, message: "Trilobite AI key accepted" });
+  } else {
+    res.json({ valid: false, message: "Invalid Trilobite AI key" });
+  }
+});
