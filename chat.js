@@ -382,3 +382,95 @@ function getReply(msg) {
     return "I didn’t catch any special words, but I’m learning.";
   }
 }
+// 🌐 Multi-source web access for TrilobiteAI
+
+async function fetchPage(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    return await response.text();
+  } catch (err) {
+    return `Error fetching ${url}: ${err.message}`;
+  }
+}
+
+// Urban Dictionary API
+async function getUrbanDefinition(word) {
+  const apiUrl = `https://api.urbandictionary.com/v0/define?term=${encodeURIComponent(word)}`;
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+  return data.list?.[0]?.definition || "No Urban Dictionary entry found.";
+}
+
+// Know Your Meme (scraping HTML)
+async function getKnowYourMeme(word) {
+  const url = `https://knowyourmeme.com/search?q=${encodeURIComponent(word)}`;
+  return await fetchPage(url); // You’d parse HTML here
+}
+
+// Reddit (JSON API)
+async function getRedditPosts(word) {
+  const url = `https://www.reddit.com/search.json?q=${encodeURIComponent(word)}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  return data.data.children.map(p => p.data.title).slice(0, 3).join("\n");
+}
+
+// MyAnimeList (MAL API via Jikan)
+async function getAnimeInfo(title) {
+  const apiUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(title)}&limit=1`;
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+  return data.data?.[0]?.synopsis || "No MAL entry found.";
+}
+
+// AniList GraphQL
+async function getAniListInfo(title) {
+  const query = `
+    query ($search: String) {
+      Media(search: $search, type: ANIME) {
+        title { romaji }
+        description
+      }
+    }
+  `;
+  const response = await fetch("https://graphql.anilist.co", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, variables: { search: title } })
+  });
+  const data = await response.json();
+  return data.data?.Media?.description || "No AniList entry found.";
+}
+
+// IGDB (requires API key)
+async function getGameInfo(title) {
+  // Placeholder: IGDB requires Twitch API auth
+  return `IGDB lookup for ${title} would go here.`;
+}
+
+// Wikipedia
+async function getWikipedia(word) {
+  const apiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(word)}`;
+  const response = await fetch(apiUrl);
+  const data = await response.json();
+  return data.extract || "No Wikipedia entry found.";
+}
+
+// Main reply logic
+async function getReply(msg) {
+  const foundWords = detectWords(msg);
+  if (!foundWords || foundWords.length === 0) {
+    return "No special words detected.";
+  }
+
+  const results = await Promise.all(foundWords.map(async w => {
+    // Example routing logic
+    if (/anime|manga/i.test(w)) return await getAnimeInfo(w);
+    if (/game/i.test(w)) return await getGameInfo(w);
+    if (/meme|skibidi|rizz/i.test(w)) return await getKnowYourMeme(w);
+    return await getWikipedia(w);
+  }));
+
+  return results.join("\n");
+}
