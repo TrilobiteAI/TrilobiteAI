@@ -351,3 +351,34 @@ document.getElementById("sendBtn").addEventListener("click", () => {
   chat.innerHTML += `<p><b>TrilobiteAI:</b> ${reply}</p><br>`;
   document.getElementById("msg").value = "";
 });
+// Load definitions from definitions.txt
+async function loadDefinitions() {
+  const response = await fetch('definitions.txt');
+  const text = await response.text();
+  const lines = text.split('\n');
+  const dict = {};
+  lines.forEach(line => {
+    const [word, def] = line.split('=');
+    if (word && def) {
+      dict[word.trim().toLowerCase()] = def.trim();
+    }
+  });
+  return dict;
+}
+
+let definitions = {};
+loadDefinitions().then(dict => definitions = dict);
+
+// Reply logic using definitions
+function getReply(msg) {
+  const foundWords = detectWords(msg);
+  if (foundWords && foundWords.length > 0) {
+    return foundWords.map(w => {
+      return definitions[w.toLowerCase()] 
+        ? `${w}: ${definitions[w.toLowerCase()]}`
+        : `${w}: detected but no definition stored`;
+    }).join("\n");
+  } else {
+    return "I didn’t catch any special words, but I’m learning.";
+  }
+}
