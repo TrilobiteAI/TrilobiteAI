@@ -474,3 +474,25 @@ async function getReply(msg) {
 
   return results.join("\n");
 }
+// 🟦 TrilobiteAI fixed API key system
+const TRILOBITE_KEY = "TheCylindricalityKeyOfTrilobitilityMadeInJulyFromTheSymbol:12357!@Trilobite.CodeAccept";
+
+function validateTrilobiteKey(userKey) {
+  if (userKey === TRILOBITE_KEY) {
+    return { valid: true, message: "Trilobite AI key accepted" };
+  } else {
+    return { valid: false, message: "Invalid Trilobite AI key" };
+  }
+}
+
+// Example usage inside your chat system
+function handleUserInput(input, apiKey) {
+  const check = validateTrilobiteKey(apiKey);
+
+  if (!check.valid) {
+    return "❌ Access denied: " + check.message;
+  }
+
+  // If key is valid, continue with your AI logic
+  return "✅ Key accepted. Trilobite AI is ready to process: " + input;
+}
